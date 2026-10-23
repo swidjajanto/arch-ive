@@ -2506,6 +2506,17 @@ mountLanding=function(){
   const {visible}=renderOverlay(sheetEl);
   const note=root.querySelector('#landingOverlayNote');if(note)note.textContent=`OVERLAY / THE ARCHIVE · ${visible.length} ${visible.length===1?'LAYER':'LAYERS'}`;
   fitOverlay(frame,sheetEl);
+  // slow, random fades so the layers drift in and out of each other
+  (root._overlayTimers||[]).forEach(clearTimeout);root._overlayTimers=[];
+  {
+   const layers=[...sheetEl.querySelectorAll('.arch-overlay-layer')].filter(l=>l.style.display!=='none');
+   const rand=(a,b)=>a+Math.random()*(b-a);
+   layers.forEach((l,i)=>{
+    const up0=i%2===0;l.style.transition='none';l.style.opacity=(up0?rand(.32,.48):rand(.1,.18)).toFixed(2);
+    const cycle=up=>{const dur=rand(2400,4000);l.style.transition=`opacity ${dur|0}ms ease-in-out`;l.style.opacity=(up?rand(.34,.5):rand(.08,.16)).toFixed(2);root._overlayTimers[i]=setTimeout(()=>cycle(!up),dur+rand(350,1700))};
+    root._overlayTimers[i]=setTimeout(()=>cycle(!up0),rand(200,2500));
+   });
+  }
   root._landingOverlayObserver?.disconnect();const ob=new ResizeObserver(()=>fitOverlay(frame,sheetEl));ob.observe(frame);root._landingOverlayObserver=ob;
  };
  requestAnimationFrame(paint);
